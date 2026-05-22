@@ -4,565 +4,709 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Matrius · Аналитика встреч</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#080810;--bg2:#0D0D18;--bg-card:#10101C;--bg-card2:#13131F;
+  --border:rgba(255,255,255,0.07);--border-orange:rgba(255,107,43,0.35);
+  --orange:#FF6B2B;--orange2:#FF8C57;--orange-dim:rgba(255,107,43,0.12);
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,0.15);
+  --green:#22C55E;--red:#EF4444;--yellow:#F59E0B;
+  --text:#EEEEF8;--muted:#8888A8;--muted2:#55556A;
+  --fh:'Space Grotesk',sans-serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;
+  --r:12px;--rl:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh;}
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f1f5f9;
-    color: #1e293b;
-    min-height: 100vh;
-}
+/* HEADER */
+.header{position:relative;overflow:hidden;padding:32px 32px 28px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.header__bg{position:absolute;inset:0;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);}
+.orb--1{width:500px;height:500px;background:radial-gradient(circle,rgba(124,58,237,0.25) 0%,transparent 70%);top:-200px;left:-100px;}
+.orb--2{width:400px;height:400px;background:radial-gradient(circle,rgba(255,107,43,0.15) 0%,transparent 70%);top:-150px;right:-80px;}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:48px 48px;}
+.header__inner{position:relative;max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;animation:fadeInUp 0.6s ease both;}
+.header__left{display:flex;align-items:center;gap:16px;}
+.logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--purple),var(--orange));border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:14px;color:#fff;flex-shrink:0;box-shadow:0 8px 24px rgba(124,58,237,0.4);}
+.header h1{font-family:var(--fh);font-weight:800;font-size:1.4rem;letter-spacing:-0.5px;}
+.header .subtitle{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+.pulse-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;margin-right:6px;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.4);}50%{opacity:.7;box-shadow:0 0 0 6px rgba(34,197,94,0);}}
+.updated-badge{font-family:var(--fm);font-size:0.72rem;color:var(--muted2);background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:6px 14px;border-radius:100px;}
 
-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    padding: 20px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.3px; }
-header .subtitle { font-size: 0.82rem; opacity: 0.8; margin-top: 3px; }
-header .updated { font-size: 0.78rem; opacity: 0.65; }
+/* LAYOUT */
+.container{max-width:1400px;margin:0 auto;padding:28px 24px;}
+.tabs{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;animation:fadeInUp 0.6s 0.05s ease both;}
+.tab{padding:8px 20px;border-radius:100px;border:1.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:0.85rem;font-weight:600;font-family:var(--fh);transition:all 0.2s;white-space:nowrap;}
+.tab:hover{border-color:var(--border-orange);color:var(--orange2);}
+.tab.active{background:linear-gradient(135deg,var(--purple),var(--orange));border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.35);}
 
-.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;animation:fadeInUp 0.6s 0.1s ease both;}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);padding:22px 24px;transition:border-color 0.2s,transform 0.2s;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--purple),var(--orange));opacity:0;transition:opacity 0.2s;}
+.stat-card:hover{border-color:var(--border-orange);transform:translateY(-2px);}
+.stat-card:hover::before{opacity:1;}
+.stat-card .label{font-family:var(--fh);font-size:0.7rem;color:var(--muted2);text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:10px;}
+.stat-card .value{font-family:var(--fh);font-size:2rem;font-weight:800;color:var(--text);line-height:1;margin-bottom:6px;}
+.stat-card .sub{font-size:0.78rem;color:var(--muted);}
+.bottleneck-value{color:var(--red)!important;font-size:1.1rem!important;}
+.trend-up{color:var(--green);font-weight:700;}
+.trend-down{color:var(--red);font-weight:700;}
+.trend-same{color:var(--muted);font-weight:700;}
 
-.tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-}
-.tab {
-    padding: 8px 20px;
-    border-radius: 20px;
-    border: 2px solid #e2e8f0;
-    background: white;
-    color: #64748b;
-    cursor: pointer;
-    font-size: 0.88rem;
-    font-weight: 500;
-    transition: all 0.15s;
-}
-.tab:hover { border-color: #6366f1; color: #6366f1; }
-.tab.active { background: #6366f1; border-color: #6366f1; color: white; }
+/* CARDS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:20px;transition:border-color 0.2s;}
+.card:hover{border-color:rgba(124,58,237,0.2);}
+.card-header{padding:16px 24px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.85rem;font-family:var(--fh);color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.badge{padding:3px 12px;border-radius:100px;font-size:0.71rem;font-weight:700;font-family:var(--fh);white-space:nowrap;}
+.badge-bottleneck{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.2);animation:glow-red 2s ease-in-out infinite;}
+@keyframes glow-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.15);}50%{box-shadow:0 0 10px 2px rgba(239,68,68,0.15);}}
+.badge-new{background:var(--purple-dim);color:#A78BFA;border:1px solid rgba(124,58,237,0.2);}
 
-.stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 22px;
-}
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 18px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-}
-.stat-card .label {
-    font-size: 0.73rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin-bottom: 6px;
-    font-weight: 600;
-}
-.stat-card .value { font-size: 1.65rem; font-weight: 800; color: #1e293b; }
-.stat-card .sub { font-size: 0.78rem; color: #64748b; margin-top: 4px; }
-.bottleneck-value { color: #ef4444 !important; font-size: 1rem !important; padding-top: 4px; }
+/* GROWTH POINTS PANEL */
+.growth-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:20px;overflow:hidden;}
+.growth-panel__head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.growth-panel__title{font-family:var(--fh);font-weight:700;font-size:0.9rem;color:var(--text);}
+.growth-panel__meta{font-size:0.75rem;color:var(--muted2);}
+.growth-panel__body{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.growth-col{}
+.growth-col__title{font-family:var(--fh);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin-bottom:12px;}
+.task-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.task-num{font-family:var(--fm);font-size:0.72rem;color:var(--orange);font-weight:600;flex-shrink:0;margin-top:2px;}
+.task-text{font-size:0.83rem;color:var(--text);line-height:1.55;}
+.weak-stage-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.weak-stage-row .stage-label{font-family:var(--fh);font-size:0.8rem;color:var(--muted);flex:1;}
+.weak-stage-row .stage-pct{font-family:var(--fm);font-size:0.75rem;font-weight:600;color:var(--red);width:40px;text-align:right;}
+.mini-bar-bg{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
+.mini-bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--purple),var(--orange));}
+.mini-bar-fill.ok{background:var(--green);}
+.mini-bar-fill.warn{background:var(--yellow);}
+.mini-bar-fill.low{background:var(--red);}
+.no-data-msg{font-size:0.82rem;color:var(--muted2);padding:8px 0;}
 
-.card {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-.card-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid #f1f5f9;
-    font-weight: 600;
-    font-size: 0.88rem;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.badge {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.73rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-.badge-bottleneck { background: #fee2e2; color: #ef4444; }
-.badge-new { background: #ede9fe; color: #6366f1; }
+/* TEAM PANEL */
+.team-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:20px;overflow:hidden;}
+.team-teacher-row{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.team-teacher-row:last-child{border-bottom:none;}
+.team-teacher-name{font-family:var(--fh);font-weight:600;font-size:0.85rem;min-width:100px;}
+.team-teacher-score{font-family:var(--fh);font-weight:800;font-size:1rem;min-width:44px;}
+.team-teacher-weak{font-size:0.78rem;color:var(--muted);flex:1;}
+.team-teacher-dots{display:flex;gap:4px;flex-shrink:0;}
+.mini-dot{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;}
 
-.scroll-wrap { overflow-x: auto; }
+/* RISKS PANEL */
+.risks-list{padding:16px 24px;display:flex;flex-direction:column;gap:10px;}
+.risk-item{display:flex;gap:12px;padding:12px 16px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.12);border-radius:var(--r);}
+.risk-num{font-family:var(--fm);font-size:0.72rem;color:var(--red);font-weight:700;flex-shrink:0;margin-top:2px;}
+.risk-text{font-size:0.83rem;color:var(--text);line-height:1.55;}
+.risk-teacher{font-size:0.72rem;color:var(--muted2);margin-top:4px;font-family:var(--fm);}
 
-table { width: 100%; border-collapse: collapse; }
-th {
-    background: #f8fafc;
-    padding: 9px 6px;
-    text-align: center;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #64748b;
-    border-bottom: 1px solid #e2e8f0;
-    white-space: nowrap;
-    letter-spacing: 0.2px;
-}
-th.th-left { text-align: left; padding-left: 20px; }
-th.th-bottleneck { background: #fff5f5; color: #ef4444; }
+/* OBJECTIONS TABLE */
+.obj-table td{text-align:left;padding:10px 12px;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.obj-idx{font-family:var(--fm);font-size:0.7rem;color:var(--muted2);text-align:center!important;width:30px;padding:10px 6px!important;}
+.obj-count{font-family:var(--fh);font-weight:700;color:var(--orange);text-align:center!important;width:50px;}
+.obj-teacher{font-family:var(--fm);font-size:0.72rem;color:var(--muted2);}
+.obj-handling{color:var(--muted);font-size:0.8rem;}
+.obj-badge{display:inline-block;background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.2);color:var(--orange2);border-radius:100px;padding:2px 10px;font-size:0.68rem;font-family:var(--fh);font-weight:700;margin-left:6px;}
 
-td {
-    padding: 8px 6px;
-    text-align: center;
-    border-bottom: 1px solid #f8fafc;
-    font-size: 1rem;
-}
-td.td-date {
-    text-align: left;
-    padding-left: 20px;
-    font-size: 0.8rem;
-    color: #475569;
-    font-weight: 500;
-    white-space: nowrap;
-    min-width: 110px;
-}
-td.td-teacher { font-size: 0.77rem; color: #94a3b8; white-space: nowrap; }
-td.td-score { font-weight: 800; font-size: 0.88rem; }
-td.td-bottleneck { background: #fff8f8; }
+/* TABLE */
+.scroll-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--bg-card2);padding:10px 6px;text-align:center;font-family:var(--fh);font-size:0.65rem;font-weight:700;color:var(--muted2);border-bottom:1px solid var(--border);white-space:nowrap;letter-spacing:0.3px;text-transform:uppercase;}
+th.th-left{text-align:left;padding-left:24px;}
+th.th-bottleneck{background:rgba(239,68,68,0.06);color:var(--red);}
+th.th-sale{background:rgba(124,58,237,0.06);color:#A78BFA;}
+th.th-group{background:rgba(124,58,237,0.08);color:#A78BFA;border-bottom:1px solid rgba(124,58,237,0.2);font-size:0.62rem;letter-spacing:1px;padding:6px;}
+td{padding:9px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);font-size:1rem;transition:background 0.15s;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+td.td-date{text-align:left;padding-left:24px;font-family:var(--fm);font-size:0.78rem;color:var(--muted);white-space:nowrap;min-width:110px;cursor:pointer;user-select:none;}
+td.td-date:hover{color:var(--orange);}
+td.td-teacher{font-size:0.77rem;color:var(--muted2);white-space:nowrap;}
+td.td-score{font-family:var(--fh);font-weight:800;font-size:0.9rem;}
+td.td-bottleneck{background:rgba(239,68,68,0.04);}
+td.td-sale{background:rgba(124,58,237,0.03);}
 
-.dot {
-    display: inline-flex;
-    width: 30px;
-    height: 30px;
-    border-radius: 7px;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.95rem;
-}
-.dot-ok   { background: #dcfce7; }
-.dot-warn { background: #fef9c3; }
-.dot-fail { background: #fee2e2; }
-.dot-none { background: #f1f5f9; color: #cbd5e1; font-size: 0.65rem; }
+.dot{display:inline-flex;width:28px;height:28px;border-radius:7px;align-items:center;justify-content:center;font-size:0.85rem;}
+.dot-ok{background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.2);}
+.dot-warn{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.2);cursor:pointer;}
+.dot-fail{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);cursor:pointer;}
+.dot-none{background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--muted2);font-size:0.6rem;}
+.dot-warn:hover,.dot-fail:hover{transform:scale(1.2);transition:transform 0.15s;}
 
-tr.tr-new { background: #fafaff; }
-tr.tr-sep td {
-    padding: 5px 20px;
-    background: #f8fafc;
-    font-size: 0.72rem;
-    color: #94a3b8;
-    font-weight: 700;
-    text-align: left;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid #e2e8f0;
-    border-top: 1px solid #e2e8f0;
-}
+tr.tr-new{background:rgba(124,58,237,0.03);}
+tr.tr-sep td{padding:8px 24px;background:rgba(255,255,255,0.02);font-family:var(--fm);font-size:0.7rem;color:var(--muted2);font-weight:600;text-align:left;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
 
-/* Comparison table */
-.cmp-row-label {
-    text-align: left;
-    padding-left: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #475569;
-    white-space: nowrap;
-}
-.trend-up   { color: #22c55e; font-size: 1.1rem; font-weight: 800; }
-.trend-down { color: #ef4444; font-size: 1.1rem; font-weight: 800; }
-.trend-same { color: #94a3b8; font-size: 1.1rem; font-weight: 800; }
-.trend-na   { color: #e2e8f0; }
-.avg-val    { font-size: 0.85rem; font-weight: 700; }
+/* EXPANDABLE LESSON DETAIL ROW */
+tr.tr-detail td{padding:0;}
+.lesson-detail{padding:16px 24px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.detail-summary{font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.detail-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.detail-col-title{font-family:var(--fh);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin-bottom:10px;}
+.detail-comment{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.detail-comment-stage{font-family:var(--fm);font-size:0.7rem;color:var(--orange);font-weight:600;flex-shrink:0;margin-top:2px;white-space:nowrap;}
+.detail-comment-text{font-size:0.8rem;color:var(--text);line-height:1.5;}
+.detail-task{display:flex;gap:8px;margin-bottom:7px;align-items:flex-start;}
+.detail-task-num{font-family:var(--fm);font-size:0.7rem;color:var(--purple);font-weight:700;flex-shrink:0;margin-top:2px;}
+.detail-task-text{font-size:0.8rem;color:var(--text);line-height:1.5;}
 
-/* Bar chart */
-.bars {
-    display: flex;
-    gap: 6px;
-    align-items: flex-end;
-    height: 60px;
-    padding: 12px 20px 14px;
-}
-.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
-.bar {
-    width: 100%;
-    border-radius: 4px 4px 0 0;
-    transition: height 0.3s;
-    min-height: 3px;
-}
-.bar-ok   { background: #22c55e; }
-.bar-warn { background: #f59e0b; }
-.bar-low  { background: #ef4444; }
-.bar-label { font-size: 0.65rem; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+/* COMPARISON */
+.cmp-row-label{text-align:left;padding-left:24px;font-family:var(--fh);font-size:0.82rem;font-weight:600;color:var(--muted);white-space:nowrap;}
+.trend-na{color:var(--muted2);}
+.avg-val{font-family:var(--fh);font-size:0.85rem;font-weight:700;}
 
-/* Empty */
-.empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
-.empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
-.empty p { font-size: 0.95rem; line-height: 1.6; }
+/* BARS */
+.bars{display:flex;gap:6px;align-items:flex-end;height:72px;padding:14px 24px 16px;}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;}
+.bar{width:100%;border-radius:5px 5px 0 0;min-height:3px;transition:height 0.8s cubic-bezier(0.4,0,0.2,1);}
+.bar-ok{background:linear-gradient(to top,rgba(34,197,94,0.4),rgba(34,197,94,0.8));}
+.bar-warn{background:linear-gradient(to top,rgba(245,158,11,0.4),rgba(245,158,11,0.8));}
+.bar-low{background:linear-gradient(to top,rgba(239,68,68,0.4),rgba(239,68,68,0.8));}
+.bar-sale{outline:1px dashed rgba(124,58,237,0.3);}
+.bar-label{font-family:var(--fm);font-size:0.58rem;color:var(--muted2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:center;}
+.bars-legend{padding:0 24px 14px;font-size:0.7rem;color:var(--muted2);line-height:1.9;}
 
-@media (max-width: 700px) {
-    header { padding: 14px 16px; }
-    .container { padding: 14px 10px; }
-    .dot { width: 24px; height: 24px; font-size: 0.8rem; border-radius: 5px; }
-    td.td-date { padding-left: 12px; }
-    th.th-left { padding-left: 12px; }
+/* EMPTY */
+.empty{text-align:center;padding:72px 20px;}
+.empty .icon{font-size:2.5rem;margin-bottom:16px;}
+.empty p{font-size:0.9rem;line-height:1.7;color:var(--muted);}
+.empty code{font-family:var(--fm);background:rgba(255,255,255,0.05);border:1px solid var(--border);padding:2px 8px;border-radius:6px;color:var(--orange);}
+
+/* ANIMATIONS */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease;}
+.reveal.in{opacity:1;transform:none;}
+
+@media(max-width:700px){
+  .header{padding:20px 16px;}
+  .container{padding:16px 12px;}
+  .dot{width:24px;height:24px;font-size:0.75rem;}
+  td.td-date{padding-left:14px;}
+  th.th-left{padding-left:14px;}
+  .growth-panel__body,.detail-cols{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
-
-<header>
-    <div>
-        <h1>Matrius · Аналитика встреч</h1>
-        <div class="subtitle">Оценка преподавателей по 8 этапам вводного урока</div>
+<header class="header">
+  <div class="header__bg"><div class="orb orb--1"></div><div class="orb orb--2"></div><div class="grid-bg"></div></div>
+  <div class="header__inner">
+    <div class="header__left">
+      <div class="logo-icon">M</div>
+      <div>
+        <h1>Matrius · Аналитика</h1>
+        <div class="subtitle"><span class="pulse-dot"></span>Оценка преподавателей по 8 этапам вводного урока</div>
+      </div>
     </div>
-    <div class="updated" id="last-updated"></div>
+    <div class="updated-badge" id="last-updated">загрузка…</div>
+  </div>
 </header>
 
 <div class="container">
-    <div class="tabs" id="tabs"></div>
-    <div id="stats" class="stats"></div>
-    <div id="content"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="stats" class="stats"></div>
+  <div id="content"></div>
 </div>
 
 <script>
+const STAGES = ["1","2","3","4","5","6","7","8.1","8.2","8.3","8.4","8.5","8.6","8.7"];
+const SALE_STAGES = new Set(["8.1","8.2","8.3","8.4","8.5","8.6","8.7"]);
 const STAGE_NAMES = {
-    "1": "Представление",
-    "2": "Знакомство",
-    "3": "О Matrius",
-    "4": "План урока",
-    "5": "Цели ребёнка",
-    "6": "Диагностика",
-    "7": "Прощание",
-    "8": "Продажа"
+  "1":"Представление","2":"Знакомство","3":"О Matrius","4":"План урока",
+  "5":"Цели ребёнка","6":"Диагностика","7":"Прощание",
+  "8.1":"Вопросы к родителю","8.2":"Точка А","8.3":"Связка → программа",
+  "8.4":"Программа + прогноз","8.5":"Формат + цены","8.6":"Рассрочка","8.7":"Закрытие"
 };
 const STAGE_SHORT = {
-    "1": "Предст.",
-    "2": "Знаком.",
-    "3": "Matrius",
-    "4": "План",
-    "5": "Цели",
-    "6": "Диагн.",
-    "7": "Прощ.",
-    "8": "Продажа"
+  "1":"Предст.","2":"Знаком.","3":"Matrius","4":"План","5":"Цели","6":"Диагн.","7":"Прощ.",
+  "8.1":"8.1","8.2":"8.2","8.3":"8.3","8.4":"8.4","8.5":"8.5","8.6":"8.6","8.7":"8.7"
 };
 
-function scoreVal(s) {
-    if (s === "✅") return 2;
-    if (s === "⚠️") return 1;
-    if (s === "❌") return 0;
-    return null;
+function scoreVal(s){if(s==="✅")return 2;if(s==="⚠️")return 1;if(s==="❌")return 0;return null;}
+function dotClass(s){if(s==="✅")return "dot-ok";if(s==="⚠️")return "dot-warn";if(s==="❌")return "dot-fail";return "dot-none";}
+function totalPct(stages){
+  let sum=0,cnt=0;
+  for(const k of STAGES){const v=scoreVal((stages||{})[k]);if(v!==null){sum+=v;cnt++;}}
+  return cnt?Math.round(sum/(cnt*2)*100):null;
 }
-function dotClass(s) {
-    if (s === "✅") return "dot-ok";
-    if (s === "⚠️") return "dot-warn";
-    if (s === "❌") return "dot-fail";
-    return "dot-none";
-}
-function totalPct(stages) {
-    let sum = 0, cnt = 0;
-    for (let i = 1; i <= 8; i++) {
-        const v = scoreVal((stages || {})[i]);
-        if (v !== null) { sum += v; cnt++; }
+function pctColor(p){if(p>=75)return"var(--green)";if(p>=50)return"var(--yellow)";return"var(--red)";}
+function barClass(p){if(p>=75)return"ok";if(p>=50)return"warn";return"low";}
+function avgByStage(lessons){
+  const sums={},cnts={};
+  for(const l of lessons){
+    for(const k of STAGES){
+      const v=scoreVal((l.stages||{})[k]);
+      if(v!==null){sums[k]=(sums[k]||0)+v;cnts[k]=(cnts[k]||0)+1;}
     }
-    return cnt ? Math.round(sum / (cnt * 2) * 100) : null;
+  }
+  const out={};
+  for(const k of Object.keys(sums))out[k]=sums[k]/cnts[k];
+  return out;
 }
-function pctColor(p) {
-    if (p >= 75) return "#22c55e";
-    if (p >= 50) return "#f59e0b";
-    return "#ef4444";
+function bottleneckStage(lessons){
+  const avgs=avgByStage(lessons);let minK=null,minV=Infinity;
+  for(const [k,v] of Object.entries(avgs))if(v<minV){minV=v;minK=k;}
+  return minK;
 }
-function avgByStage(lessons) {
-    const sums = {}, cnts = {};
-    for (const l of lessons) {
-        for (let i = 1; i <= 8; i++) {
-            const k = String(i);
-            const v = scoreVal((l.stages || {})[k]);
-            if (v !== null) {
-                sums[k] = (sums[k] || 0) + v;
-                cnts[k] = (cnts[k] || 0) + 1;
-            }
-        }
+function fmtDate(d){if(!d)return"—";const [y,m,day]=d.split("-");return`${day}.${m}.${y}`;}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function sortDesc(lessons){
+  return [...lessons].sort((a,b)=>{
+    const da=(a.date||"")+(a.time||""),db=(b.date||"")+(b.time||"");
+    return db.localeCompare(da);
+  });
+}
+function splitBaselineNew(lessons){
+  const asc=[...lessons].sort((a,b)=>{
+    const da=(a.date||"")+(a.time||""),db=(b.date||"")+(b.time||"");
+    return da.localeCompare(db);
+  });
+  return{baseline:asc.slice(0,Math.min(10,asc.length)),newOnes:asc.slice(10)};
+}
+
+let allLessons=[],currentTeacher="Все";
+const openDetails=new Set();
+
+async function loadData(){
+  try{const r=await fetch("data.json?t="+Date.now());const d=await r.json();return d.lessons||[];}
+  catch(e){console.error(e);return[];}
+}
+function renderTabs(lessons){
+  const teachers=["Все",...Array.from(new Set(lessons.map(l=>l.teacher))).sort()];
+  document.getElementById("tabs").innerHTML=teachers.map(t=>
+    `<button class="tab ${t===currentTeacher?"active":""}" onclick="select('${t}')">${t}</button>`
+  ).join("");
+}
+function select(t){currentTeacher=t;openDetails.clear();renderAll();}
+function filtered(){return currentTeacher==="Все"?allLessons:allLessons.filter(l=>l.teacher===currentTeacher);}
+
+/* ── STATS ── */
+function renderStats(lessons){
+  const el=document.getElementById("stats");
+  if(!lessons.length){el.innerHTML="";return;}
+  const {baseline,newOnes}=splitBaselineNew(lessons);
+  const btn=bottleneckStage(baseline);
+  const baseAvgs=avgByStage(baseline);
+  const overallAvg=Object.values(baseAvgs).length
+    ?Math.round(Object.values(baseAvgs).reduce((a,b)=>a+b,0)/Object.values(baseAvgs).length/2*100):0;
+  let trendHtml="";
+  if(newOnes.length>0&&btn){
+    const newAvgs=avgByStage(newOnes);
+    const diff=(newAvgs[btn]??0)-(baseAvgs[btn]??0);
+    if(diff>0.25)trendHtml=`<span class="trend-up">↑ улучшение</span>`;
+    else if(diff<-0.25)trendHtml=`<span class="trend-down">↓ просадка</span>`;
+    else trendHtml=`<span class="trend-same">→ без изменений</span>`;
+  }
+  el.innerHTML=`
+    <div class="stat-card">
+      <div class="label">Всего встреч</div>
+      <div class="value">${lessons.length}</div>
+      <div class="sub">${newOnes.length>0?`${newOnes.length} новых поверх базы`:"все в базе (≤10)"}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Средний балл — база</div>
+      <div class="value" style="color:${pctColor(overallAvg)}">${overallAvg}%</div>
+      <div class="sub">по первым ${baseline.length} встречам</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Узкое место (база)</div>
+      <div class="value bottleneck-value">${btn?`Этап ${btn}`:"—"}</div>
+      <div class="sub">${btn?STAGE_NAMES[btn]:"—"} ${trendHtml}</div>
+    </div>`;
+  document.querySelectorAll('.stat-card').forEach((el,i)=>{
+    el.style.animation=`fadeInUp 0.5s ${0.05*i+0.15}s ease both`;
+  });
+}
+
+/* ── GROWTH POINTS (teacher panel) ── */
+function renderGrowthPanel(lessons){
+  if(!lessons.length||currentTeacher==="Все")return"";
+  const recent=sortDesc(lessons).slice(0,5);
+  const avgs=avgByStage(lessons);
+
+  // collect tasks from recent lessons
+  const allTasks=[];
+  for(const l of recent){
+    if(l.tasks&&l.tasks.length){
+      for(const t of l.tasks){
+        allTasks.push({text:t,date:l.date});
+      }
     }
-    const out = {};
-    for (const k of Object.keys(sums)) out[k] = sums[k] / cnts[k];
-    return out;
-}
-function bottleneckStage(lessons) {
-    const avgs = avgByStage(lessons);
-    let minK = null, minV = Infinity;
-    for (const [k, v] of Object.entries(avgs)) {
-        if (v < minV) { minV = v; minK = k; }
-    }
-    return minK;
-}
-function fmtDate(d) {
-    if (!d) return "—";
-    const [y, m, day] = d.split("-");
-    return `${day}.${m}.${y}`;
-}
-function sortDesc(lessons) {
-    return [...lessons].sort((a, b) => {
-        const da = (a.date || "") + (a.time || "");
-        const db = (b.date || "") + (b.time || "");
-        return db.localeCompare(da);
-    });
-}
-function splitBaselineNew(lessons) {
-    // Chronological order: first 10 = baseline, rest = new
-    const asc = [...lessons].sort((a, b) => {
-        const da = (a.date || "") + (a.time || "");
-        const db = (b.date || "") + (b.time || "");
-        return da.localeCompare(db);
-    });
-    const baseline = asc.slice(0, Math.min(10, asc.length));
-    const newOnes = asc.slice(10);
-    return { baseline, newOnes };
-}
+  }
 
-let allLessons = [];
-let currentTeacher = "Все";
+  // weak stages sorted
+  const weakStages=STAGES
+    .filter(k=>avgs[k]!==undefined)
+    .sort((a,b)=>(avgs[a]??2)-(avgs[b]??2))
+    .slice(0,6);
 
-async function loadData() {
-    try {
-        const r = await fetch("data.json?t=" + Date.now());
-        const d = await r.json();
-        return d.lessons || [];
-    } catch (e) {
-        console.error(e);
-        return [];
-    }
+  const tasksHtml=allTasks.length
+    ?allTasks.slice(0,6).map((t,i)=>`
+      <div class="task-item">
+        <span class="task-num">${i+1}.</span>
+        <span class="task-text">${esc(t.text)}</span>
+      </div>`).join("")
+    :`<div class="no-data-msg">Задачи появятся после анализа с разделом "Саммари + задачи"</div>`;
+
+  const stagesHtml=weakStages.map(k=>{
+    const pct=Math.round((avgs[k]??0)/2*100);
+    const cls=barClass(pct);
+    return`<div class="weak-stage-row">
+      <span class="stage-label">Этап ${k} — ${STAGE_NAMES[k]}</span>
+      <div class="mini-bar-bg"><div class="mini-bar-fill ${cls}" style="width:${pct}%"></div></div>
+      <span class="stage-pct">${pct}%</span>
+    </div>`;
+  }).join("");
+
+  return`<div class="growth-panel reveal">
+    <div class="growth-panel__head">
+      <span class="growth-panel__title">Точки роста — ${currentTeacher}</span>
+      <span class="growth-panel__meta">последние ${recent.length} уроков</span>
+    </div>
+    <div class="growth-panel__body">
+      <div class="growth-col">
+        <div class="growth-col__title">Задачи из разборов</div>
+        ${tasksHtml}
+      </div>
+      <div class="growth-col">
+        <div class="growth-col__title">Этапы по среднему баллу</div>
+        ${stagesHtml}
+      </div>
+    </div>
+  </div>`;
 }
 
-function renderTabs(lessons) {
-    const teachers = ["Все", ...Array.from(new Set(lessons.map(l => l.teacher))).sort()];
-    document.getElementById("tabs").innerHTML = teachers.map(t =>
-        `<button class="tab ${t === currentTeacher ? "active" : ""}" onclick="select('${t}')">${t}</button>`
-    ).join("");
-}
-
-function select(t) {
-    currentTeacher = t;
-    renderAll();
-}
-
-function filtered() {
-    if (currentTeacher === "Все") return allLessons;
-    return allLessons.filter(l => l.teacher === currentTeacher);
-}
-
-function renderStats(lessons) {
-    const el = document.getElementById("stats");
-    if (!lessons.length) { el.innerHTML = ""; return; }
-
-    const { baseline, newOnes } = splitBaselineNew(lessons);
-    const btn = bottleneckStage(baseline);
-    const btnName = btn ? STAGE_NAMES[btn] : "—";
-
-    const baseAvgs = avgByStage(baseline);
-    const overallAvg = Object.values(baseAvgs).length
-        ? Math.round(Object.values(baseAvgs).reduce((a, b) => a + b, 0) / Object.values(baseAvgs).length / 2 * 100)
-        : 0;
-
-    let trendHtml = "";
-    if (newOnes.length > 0 && btn) {
-        const newAvgs = avgByStage(newOnes);
-        const diff = (newAvgs[btn] ?? 0) - (baseAvgs[btn] ?? 0);
-        if (diff > 0.25)       trendHtml = `<span class="trend-up"> ↑ улучшение</span>`;
-        else if (diff < -0.25) trendHtml = `<span class="trend-down"> ↓ просадка</span>`;
-        else                   trendHtml = `<span class="trend-same"> → без изменений</span>`;
-    }
-
-    el.innerHTML = `
-        <div class="stat-card">
-            <div class="label">Всего встреч</div>
-            <div class="value">${lessons.length}</div>
-            <div class="sub">${newOnes.length > 0 ? `${newOnes.length} новых поверх базы` : "все в базе (≤10)"}</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Средний балл — база</div>
-            <div class="value" style="color:${pctColor(overallAvg)}">${overallAvg}%</div>
-            <div class="sub">по первым ${baseline.length} встречам</div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Узкое место (база)</div>
-            <div class="value bottleneck-value">${btn ? `Этап ${btn}` : "—"}</div>
-            <div class="sub">${btnName}${trendHtml}</div>
-        </div>
-    `;
-}
-
-function lessonRow(l, isNew, btn, showTeacher) {
-    const pct = totalPct(l.stages || {});
-    const cells = [1,2,3,4,5,6,7,8].map(i => {
-        const k = String(i);
-        const s = (l.stages || {})[k];
-        const isBn = k === btn;
-        return `<td class="${isBn ? "td-bottleneck" : ""}">
-            <span class="dot ${dotClass(s)}">${s || "·"}</span>
-        </td>`;
+/* ── TEAM PANEL (all teachers) ── */
+function renderTeamPanel(lessons){
+  if(currentTeacher!=="Все"||!lessons.length)return"";
+  const teachers=[...new Set(lessons.map(l=>l.teacher))].sort();
+  const rows=teachers.map(teacher=>{
+    const tLessons=lessons.filter(l=>l.teacher===teacher);
+    const avgs=avgByStage(tLessons);
+    const pct=Object.values(avgs).length
+      ?Math.round(Object.values(avgs).reduce((a,b)=>a+b,0)/Object.values(avgs).length/2*100):0;
+    const btn=bottleneckStage(tLessons);
+    const weakText=btn?`Узкое: Этап ${btn} — ${STAGE_NAMES[btn]}`:"Нет данных";
+    const dots=["5","8.1","8.2","8.5","8.7"].map(k=>{
+      const v=avgs[k];
+      if(v===undefined)return`<div class="mini-dot dot-none" title="Этап ${k}">·</div>`;
+      const p=Math.round(v/2*100);
+      const cls=p>=75?"dot-ok":p>=50?"dot-warn":"dot-fail";
+      const em=p>=75?"✅":p>=50?"⚠️":"❌";
+      return`<div class="mini-dot ${cls}" title="Этап ${k} — ${STAGE_NAMES[k]}: ${p}%">${em}</div>`;
     }).join("");
-    const scoreHtml = pct !== null
-        ? `<td class="td-score" style="color:${pctColor(pct)}">${pct}%</td>`
-        : `<td class="td-score" style="color:#cbd5e1">—</td>`;
-    const teacherTd = showTeacher ? `<td class="td-teacher">${l.teacher || ""}</td>` : "";
-    return `<tr class="${isNew ? "tr-new" : ""}">
-        <td class="td-date">${fmtDate(l.date)}${l.time ? " " + l.time : ""}</td>
-        ${teacherTd}
-        ${cells}
-        ${scoreHtml}
-    </tr>`;
-}
-
-function renderTable(lessons) {
-    if (!lessons.length) {
-        return `<div class="empty"><div class="icon">📊</div>
-            <p>Нет данных.<br>Отправь транскрипцию в бот через /analiz.</p></div>`;
-    }
-
-    const { baseline, newOnes } = splitBaselineNew(lessons);
-    const btn = bottleneckStage(baseline.length ? baseline : lessons);
-    const showTeacher = currentTeacher === "Все";
-
-    const stageHeaders = [1,2,3,4,5,6,7,8].map(i =>
-        `<th class="${String(i) === btn ? "th-bottleneck" : ""}">${STAGE_SHORT[String(i)]}</th>`
-    ).join("");
-    const teacherHeader = showTeacher ? "<th>Препод.</th>" : "";
-
-    const baseDesc = sortDesc(baseline);
-    const newDesc = sortDesc(newOnes);
-
-    let rows = "";
-    if (newOnes.length > 0) {
-        rows += `<tr class="tr-sep"><td colspan="100">🆕 Новые встречи — ${newOnes.length} шт.</td></tr>`;
-        rows += newDesc.map(l => lessonRow(l, true, btn, showTeacher)).join("");
-        rows += `<tr class="tr-sep"><td colspan="100">📋 База — первые ${baseline.length} встреч</td></tr>`;
-    }
-    rows += baseDesc.map(l => lessonRow(l, false, btn, showTeacher)).join("");
-
-    const btnBadge = btn
-        ? `<span class="badge badge-bottleneck">Узкое место: Этап ${btn} — ${STAGE_NAMES[btn]}</span>`
-        : "";
-
-    return `<div class="card">
-        <div class="card-header">
-            Встречи по этапам
-            ${btnBadge}
-            ${newOnes.length > 0 ? `<span class="badge badge-new">${newOnes.length} новых</span>` : ""}
-        </div>
-        <div class="scroll-wrap">
-            <table>
-                <thead><tr>
-                    <th class="th-left">Дата</th>
-                    ${teacherHeader}
-                    ${stageHeaders}
-                    <th>Балл</th>
-                </tr></thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>
+    return`<div class="team-teacher-row">
+      <span class="team-teacher-name">${esc(teacher)}</span>
+      <span class="team-teacher-score" style="color:${pctColor(pct)}">${pct}%</span>
+      <span class="team-teacher-weak">${weakText}</span>
+      <div class="team-teacher-dots" title="Этапы 5, 8.1–8.2, 8.5, 8.7">${dots}</div>
     </div>`;
+  }).join("");
+
+  return`<div class="team-panel reveal">
+    <div class="card-header">Обзор команды <span style="font-size:.75rem;color:var(--muted2);font-weight:400">ключевые этапы: 5, 8.1, 8.2, 8.5, 8.7</span></div>
+    ${rows}
+  </div>`;
 }
 
-function renderBars(lessons) {
-    if (lessons.length < 3) return "";
-    const { baseline } = splitBaselineNew(lessons);
-    const avgs = avgByStage(baseline.length ? baseline : lessons);
-    const bars = [1,2,3,4,5,6,7,8].map(i => {
-        const k = String(i);
-        const v = avgs[k] ?? 0;
-        const pct = Math.round(v / 2 * 100);
-        const h = Math.max(4, Math.round(v / 2 * 52));
-        const cls = pct >= 75 ? "bar-ok" : pct >= 50 ? "bar-warn" : "bar-low";
-        return `<div class="bar-wrap">
-            <div class="bar ${cls}" style="height:${h}px" title="${STAGE_NAMES[k]}: ${pct}%"></div>
-            <div class="bar-label">${i}</div>
-        </div>`;
-    }).join("");
-    return `<div class="card" style="margin-bottom:20px">
-        <div class="card-header">Средний балл по этапам (база)</div>
-        <div class="bars">${bars}</div>
-        <div style="padding:0 20px 12px;font-size:0.73rem;color:#94a3b8">
-            ${[1,2,3,4,5,6,7,8].map(i => `${i} — ${STAGE_NAMES[String(i)]}`).join(" &nbsp;·&nbsp; ")}
-        </div>
-    </div>`;
-}
-
-function renderComparison(lessons) {
-    const { baseline, newOnes } = splitBaselineNew(lessons);
-    if (!newOnes.length || !baseline.length) return "";
-
-    const baseAvgs = avgByStage(baseline);
-    const newAvgs = avgByStage(newOnes);
-
-    function fmt(v) { return v !== undefined ? Math.round(v / 2 * 100) + "%" : "—"; }
-    function trendIcon(bv, nv) {
-        if (nv === undefined || bv === undefined) return `<span class="trend-na">—</span>`;
-        const d = nv - bv;
-        if (d > 0.25) return `<span class="trend-up">↑</span>`;
-        if (d < -0.25) return `<span class="trend-down">↓</span>`;
-        return `<span class="trend-same">→</span>`;
+/* ── RISKS PANEL ── */
+function renderRisksPanel(lessons){
+  if(!lessons.length)return"";
+  const recent=sortDesc(lessons).slice(0,10);
+  const riskItems=[];
+  for(const l of recent){
+    if(l.risks&&l.risks.length){
+      for(const r of l.risks.slice(0,2)){
+        riskItems.push({text:r,teacher:l.teacher,date:l.date});
+      }
     }
+  }
+  if(!riskItems.length)return"";
+  const shown=riskItems.slice(0,6);
+  const itemsHtml=shown.map((r,i)=>`
+    <div class="risk-item">
+      <span class="risk-num">${i+1}</span>
+      <div>
+        <div class="risk-text">${esc(r.text)}</div>
+        <div class="risk-teacher">${esc(r.teacher)} · ${fmtDate(r.date)}</div>
+      </div>
+    </div>`).join("");
+  return`<div class="card reveal">
+    <div class="card-header">Риски сделок <span style="font-size:.75rem;color:var(--muted2);font-weight:400">из последних ${recent.length} уроков</span></div>
+    <div class="risks-list">${itemsHtml}</div>
+  </div>`;
+}
 
-    const btn = bottleneckStage(baseline);
-    const heads = [1,2,3,4,5,6,7,8].map(i =>
-        `<th class="${String(i) === btn ? "th-bottleneck" : ""}">${STAGE_SHORT[String(i)]}</th>`
-    ).join("");
-    const baseRow = [1,2,3,4,5,6,7,8].map(i =>
-        `<td class="avg-val ${String(i) === btn ? "td-bottleneck" : ""}">${fmt(baseAvgs[String(i)])}</td>`
-    ).join("");
-    const newRow = [1,2,3,4,5,6,7,8].map(i =>
-        `<td class="avg-val ${String(i) === btn ? "td-bottleneck" : ""}">${fmt(newAvgs[String(i)])}</td>`
-    ).join("");
-    const trendRow = [1,2,3,4,5,6,7,8].map(i =>
-        `<td class="${String(i) === btn ? "td-bottleneck" : ""}">${trendIcon(baseAvgs[String(i)], newAvgs[String(i)])}</td>`
-    ).join("");
+/* ── LESSON DETAIL ROW ── */
+function buildDetailHtml(l,colSpan){
+  const comments=l.comments||{};
+  const tasks=l.tasks||[];
+  const commentHtml=Object.keys(comments).length
+    ?Object.entries(comments).map(([k,v])=>`
+      <div class="detail-comment">
+        <span class="detail-comment-stage">Этап ${k}</span>
+        <span class="detail-comment-text">${esc(v)}</span>
+      </div>`).join("")
+    :`<div class="no-data-msg">Комментарии появятся в новых разборах</div>`;
+  const taskHtml=tasks.length
+    ?tasks.map((t,i)=>`
+      <div class="detail-task">
+        <span class="detail-task-num">${i+1}.</span>
+        <span class="detail-task-text">${esc(t)}</span>
+      </div>`).join("")
+    :`<div class="no-data-msg">Задачи не найдены</div>`;
+  const summaryHtml=l.summary
+    ?`<div class="detail-summary">${esc(l.summary)}</div>`:"";
+  return`<tr class="tr-detail" id="detail-${l.id}"><td colspan="${colSpan}" style="padding:0;">
+    <div class="lesson-detail">
+      ${summaryHtml}
+      <div class="detail-cols">
+        <div>
+          <div class="detail-col-title">Комментарии по этапам (⚠️ / ❌)</div>
+          ${commentHtml}
+        </div>
+        <div>
+          <div class="detail-col-title">Задачи на следующий урок</div>
+          ${taskHtml}
+        </div>
+      </div>
+    </div>
+  </td></tr>`;
+}
 
-    return `<div class="card">
-        <div class="card-header">
-            Сравнение: новые встречи vs база
-            <span style="font-size:0.78rem;color:#94a3b8;font-weight:400">${newOnes.length} новых / ${baseline.length} в базе</span>
-        </div>
-        <div class="scroll-wrap">
-            <table>
-                <thead><tr>
-                    <th class="th-left" style="min-width:130px"></th>${heads}
-                </tr></thead>
-                <tbody>
-                    <tr><td class="cmp-row-label">База (среднее)</td>${baseRow}</tr>
-                    <tr><td class="cmp-row-label">Новые (среднее)</td>${newRow}</tr>
-                    <tr><td class="cmp-row-label">Динамика</td>${trendRow}</tr>
-                </tbody>
-            </table>
-        </div>
+function toggleDetail(lessonId,colSpan){
+  const existing=document.getElementById("detail-"+lessonId);
+  if(existing){existing.remove();openDetails.delete(lessonId);return;}
+  openDetails.add(lessonId);
+  const lesson=allLessons.find(l=>l.id===lessonId);
+  if(!lesson)return;
+  const row=document.querySelector(`tr[data-id="${lessonId}"]`);
+  if(row)row.insertAdjacentHTML("afterend",buildDetailHtml(lesson,colSpan));
+}
+
+/* ── TABLE ── */
+function lessonRow(l,isNew,btn,showTeacher){
+  const pct=totalPct(l.stages||{});
+  const colSpan=2+STAGES.length+(showTeacher?1:0);
+  const cells=STAGES.map(k=>{
+    const s=(l.stages||{})[k],isBn=k===btn,isSale=SALE_STAGES.has(k);
+    const hasComment=l.comments&&l.comments[k];
+    const clickable=(s==="⚠️"||s==="❌")&&hasComment;
+    return`<td class="${isBn?"td-bottleneck":isSale?"td-sale":""}">
+      <span class="dot ${dotClass(s)}" ${clickable?`onclick="toggleDetail('${l.id}',${colSpan})" title="Нажми — читать комментарий"`:""}>${s||"·"}</span>
+    </td>`;
+  }).join("");
+  const scoreHtml=pct!==null
+    ?`<td class="td-score" style="color:${pctColor(pct)}">${pct}%</td>`
+    :`<td class="td-score" style="color:var(--muted2)">—</td>`;
+  const teacherTd=showTeacher?`<td class="td-teacher">${esc(l.teacher||"")}</td>`:"";
+  const isOpen=openDetails.has(l.id);
+  return`<tr data-id="${l.id}" class="${isNew?"tr-new":""}">
+    <td class="td-date" onclick="toggleDetail('${l.id}',${colSpan})" title="Развернуть разбор">
+      ${isOpen?"▼ ":"▶ "}${fmtDate(l.date)}${l.time?" "+l.time:""}
+    </td>
+    ${teacherTd}${cells}${scoreHtml}
+  </tr>`;
+}
+
+function renderTable(lessons){
+  if(!lessons.length){
+    return`<div class="empty"><div class="icon">📊</div>
+      <p>Нет данных.<br>Отправь транскрипт командой <code>/analiz</code></p></div>`;
+  }
+  const {baseline,newOnes}=splitBaselineNew(lessons);
+  const btn=bottleneckStage(baseline.length?baseline:lessons);
+  const showTeacher=currentTeacher==="Все";
+  const teacherHeader=showTeacher?`<th rowspan="2">Препод.</th>`:"";
+  const mainH=["1","2","3","4","5","6","7"].map(k=>
+    `<th rowspan="2" class="${k===btn?"th-bottleneck":""}">${STAGE_SHORT[k]}</th>`
+  ).join("");
+  const saleSubH=["8.1","8.2","8.3","8.4","8.5","8.6","8.7"].map(k=>
+    `<th class="${k===btn?"th-bottleneck":"th-sale"}">${STAGE_SHORT[k]}</th>`
+  ).join("");
+  const baseDesc=sortDesc(baseline),newDesc=sortDesc(newOnes);
+  let rows="";
+  if(newOnes.length>0){
+    rows+=`<tr class="tr-sep"><td colspan="100">🆕 Новые встречи — ${newOnes.length} шт.</td></tr>`;
+    rows+=newDesc.map(l=>lessonRow(l,true,btn,showTeacher)).join("");
+    rows+=`<tr class="tr-sep"><td colspan="100">📋 База — первые ${baseline.length} встреч</td></tr>`;
+  }
+  rows+=baseDesc.map(l=>lessonRow(l,false,btn,showTeacher)).join("");
+  const btnBadge=btn?`<span class="badge badge-bottleneck">⚠ Этап ${btn} — ${STAGE_NAMES[btn]}</span>`:"";
+  return`<div class="card reveal">
+    <div class="card-header">
+      Встречи по этапам ${btnBadge}
+      ${newOnes.length>0?`<span class="badge badge-new">+${newOnes.length} новых</span>`:""}
+      <span style="font-size:.75rem;color:var(--muted2);font-weight:400;margin-left:auto">↕ нажми на дату — раскрыть разбор</span>
+    </div>
+    <div class="scroll-wrap"><table>
+      <thead>
+        <tr>
+          <th rowspan="2" class="th-left">Дата</th>
+          ${teacherHeader}${mainH}
+          <th colspan="7" class="th-group">Этап 8 — Продажа</th>
+          <th rowspan="2">Балл</th>
+        </tr>
+        <tr>${saleSubH}</tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ── BARS ── */
+function renderBars(lessons){
+  if(lessons.length<3)return"";
+  const {baseline}=splitBaselineNew(lessons);
+  const avgs=avgByStage(baseline.length?baseline:lessons);
+  const bars=STAGES.map(k=>{
+    const v=avgs[k]??0,pct=Math.round(v/2*100);
+    const h=Math.max(4,Math.round(v/2*52));
+    const cls=pct>=75?"bar-ok":pct>=50?"bar-warn":"bar-low";
+    const saleCls=SALE_STAGES.has(k)?"bar-sale":"";
+    return`<div class="bar-wrap">
+      <div class="bar ${cls} ${saleCls}" style="height:${h}px" title="${STAGE_NAMES[k]}: ${pct}%"></div>
+      <div class="bar-label">${k}</div>
     </div>`;
+  }).join("");
+  return`<div class="card reveal">
+    <div class="card-header">Средний балл по этапам (база)</div>
+    <div class="bars">${bars}</div>
+    <div class="bars-legend">${STAGES.map(k=>`${k} — ${STAGE_NAMES[k]}`).join(" &nbsp;·&nbsp; ")}</div>
+  </div>`;
 }
 
-function renderAll() {
-    const data = filtered();
-    renderStats(data);
-    document.getElementById("content").innerHTML =
-        renderBars(data) +
-        renderTable(data) +
-        renderComparison(data);
+/* ── COMPARISON ── */
+function renderComparison(lessons){
+  const {baseline,newOnes}=splitBaselineNew(lessons);
+  if(!newOnes.length||!baseline.length)return"";
+  const baseAvgs=avgByStage(baseline),newAvgs=avgByStage(newOnes);
+  function fmt(v){return v!==undefined?Math.round(v/2*100)+"%":"—";}
+  function trendIcon(bv,nv){
+    if(nv===undefined||bv===undefined)return`<span class="trend-na">—</span>`;
+    const d=nv-bv;
+    if(d>0.25)return`<span class="trend-up">↑</span>`;
+    if(d<-0.25)return`<span class="trend-down">↓</span>`;
+    return`<span class="trend-same">→</span>`;
+  }
+  const btn=bottleneckStage(baseline);
+  const mainH=["1","2","3","4","5","6","7"].map(k=>
+    `<th rowspan="2" class="${k===btn?"th-bottleneck":""}">${STAGE_SHORT[k]}</th>`
+  ).join("");
+  const saleSubH=["8.1","8.2","8.3","8.4","8.5","8.6","8.7"].map(k=>
+    `<th class="${k===btn?"th-bottleneck":"th-sale"}">${STAGE_SHORT[k]}</th>`
+  ).join("");
+  const mkRow=(avgs)=>STAGES.map(k=>
+    `<td class="avg-val ${k===btn?"td-bottleneck":SALE_STAGES.has(k)?"td-sale":""}">${fmt(avgs[k])}</td>`
+  ).join("");
+  const trendRow=STAGES.map(k=>
+    `<td class="${k===btn?"td-bottleneck":SALE_STAGES.has(k)?"td-sale":""}">${trendIcon(baseAvgs[k],newAvgs[k])}</td>`
+  ).join("");
+  return`<div class="card reveal">
+    <div class="card-header">Сравнение: новые встречи vs база
+      <span style="font-size:.75rem;color:var(--muted2);font-weight:400">${newOnes.length} новых / ${baseline.length} в базе</span>
+    </div>
+    <div class="scroll-wrap"><table>
+      <thead>
+        <tr>
+          <th rowspan="2" class="th-left" style="min-width:130px"></th>
+          ${mainH}<th colspan="7" class="th-group">Этап 8 — Продажа</th>
+        </tr>
+        <tr>${saleSubH}</tr>
+      </thead>
+      <tbody>
+        <tr><td class="cmp-row-label">База (среднее)</td>${mkRow(baseAvgs)}</tr>
+        <tr><td class="cmp-row-label">Новые (среднее)</td>${mkRow(newAvgs)}</tr>
+        <tr><td class="cmp-row-label">Динамика</td>${trendRow}</tr>
+      </tbody>
+    </table></div>
+  </div>`;
 }
 
-async function init() {
-    allLessons = await loadData();
-    if (allLessons.length) {
-        const latest = allLessons.reduce((a, b) => a.date > b.date ? a : b);
-        document.getElementById("last-updated").textContent = "Обновлено: " + fmtDate(latest.date);
+/* ── OBJECTIONS PANEL ── */
+function renderObjectionsPanel(lessons){
+  if(!lessons.length) return "";
+  const allObjs=[];
+  for(const l of sortDesc(lessons)){
+    if(l.objections&&l.objections.length){
+      for(const o of l.objections){
+        allObjs.push({text:o.text||"",handling:o.handling||"",teacher:l.teacher,date:l.date});
+      }
     }
-    renderTabs(allLessons);
-    renderAll();
+  }
+  if(!allObjs.length) return "";
+  const groups={};
+  for(const o of allObjs){
+    const key=(o.text||"").toLowerCase().trim().slice(0,50);
+    if(!groups[key]){groups[key]={text:o.text,handlings:[],count:0,teachers:new Set()};}
+    groups[key].count++;
+    groups[key].teachers.add(o.teacher);
+    if(o.handling&&!groups[key].handlings.includes(o.handling))groups[key].handlings.push(o.handling);
+  }
+  const sorted=Object.values(groups).sort((a,b)=>b.count-a.count);
+  const rows=sorted.map((g,i)=>`
+    <tr>
+      <td class="obj-idx">${i+1}</td>
+      <td>${esc(g.text)}</td>
+      <td class="obj-handling">${g.handlings.length?esc(g.handlings[0]):"—"}</td>
+      <td class="obj-count">${g.count}</td>
+      <td class="obj-teacher">${[...g.teachers].map(esc).join(", ")}</td>
+    </tr>`).join("");
+  const lessonsWithObjs=lessons.filter(l=>l.objections&&l.objections.length).length;
+  return`<div class="card reveal">
+    <div class="card-header">
+      Возражения клиентов
+      <span class="obj-badge">${allObjs.length} записей</span>
+      <span style="font-size:.75rem;color:var(--muted2);font-weight:400;margin-left:6px">из ${lessonsWithObjs} уроков</span>
+    </div>
+    <div class="scroll-wrap"><table class="obj-table">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th class="th-left" style="min-width:200px">Возражение</th>
+          <th class="th-left" style="min-width:180px">Как обработано</th>
+          <th style="width:50px">Раз</th>
+          <th style="width:110px">Препод.</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+  </div>`;
 }
 
+/* ── MAIN RENDER ── */
+function renderAll(){
+  const data=filtered();
+  renderStats(data);
+  const html=
+    renderTeamPanel(data)+
+    renderGrowthPanel(data)+
+    renderRisksPanel(data)+
+    renderObjectionsPanel(data)+
+    renderBars(data)+
+    renderTable(data)+
+    renderComparison(data);
+  document.getElementById("content").innerHTML=html;
+  const observer=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in");});
+  },{threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+}
+
+async function init(){
+  allLessons=await loadData();
+  const upd=document.getElementById("last-updated");
+  if(allLessons.length){
+    const latest=allLessons.reduce((a,b)=>a.date>b.date?a:b);
+    upd.textContent="Обновлено: "+fmtDate(latest.date);
+  }else{upd.textContent="нет данных";}
+  renderTabs(allLessons);
+  renderAll();
+}
 init();
 </script>
 </body>
