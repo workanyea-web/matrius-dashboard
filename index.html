@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrius · Аналитика встреч</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.3px; }
+header .subtitle { font-size: 0.82rem; opacity: 0.8; margin-top: 3px; }
+header .updated { font-size: 0.78rem; opacity: 0.65; }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.tab {
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+.tab:hover { border-color: #6366f1; color: #6366f1; }
+.tab.active { background: #6366f1; border-color: #6366f1; color: white; }
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+}
+.stat-card .label {
+    font-size: 0.73rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.stat-card .value { font-size: 1.65rem; font-weight: 800; color: #1e293b; }
+.stat-card .sub { font-size: 0.78rem; color: #64748b; margin-top: 4px; }
+.bottleneck-value { color: #ef4444 !important; font-size: 1rem !important; padding-top: 4px; }
+
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.badge-bottleneck { background: #fee2e2; color: #ef4444; }
+.badge-new { background: #ede9fe; color: #6366f1; }
+
+.scroll-wrap { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+th {
+    background: #f8fafc;
+    padding: 9px 6px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+th.th-left { text-align: left; padding-left: 20px; }
+th.th-bottleneck { background: #fff5f5; color: #ef4444; }
+
+td {
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 1rem;
+}
+td.td-date {
+    text-align: left;
+    padding-left: 20px;
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+    min-width: 110px;
+}
+td.td-teacher { font-size: 0.77rem; color: #94a3b8; white-space: nowrap; }
+td.td-score { font-weight: 800; font-size: 0.88rem; }
+td.td-bottleneck { background: #fff8f8; }
+
+.dot {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+.dot-ok   { background: #dcfce7; }
+.dot-warn { background: #fef9c3; }
+.dot-fail { background: #fee2e2; }
+.dot-none { background: #f1f5f9; color: #cbd5e1; font-size: 0.65rem; }
+
+tr.tr-new { background: #fafaff; }
+tr.tr-sep td {
+    padding: 5px 20px;
+    background: #f8fafc;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e2e8f0;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Comparison table */
+.cmp-row-label {
+    text-align: left;
+    padding-left: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+.trend-up   { color: #22c55e; font-size: 1.1rem; font-weight: 800; }
+.trend-down { color: #ef4444; font-size: 1.1rem; font-weight: 800; }
+.trend-same { color: #94a3b8; font-size: 1.1rem; font-weight: 800; }
+.trend-na   { color: #e2e8f0; }
+.avg-val    { font-size: 0.85rem; font-weight: 700; }
+
+/* Bar chart */
+.bars {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    height: 60px;
+    padding: 12px 20px 14px;
+}
+.bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s;
+    min-height: 3px;
+}
+.bar-ok   { background: #22c55e; }
+.bar-warn { background: #f59e0b; }
+.bar-low  { background: #ef4444; }
+.bar-label { font-size: 0.65rem; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+
+/* Empty */
+.empty { text-align: center; padding: 60px 20px; color: #94a3b8; }
+.empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+.empty p { font-size: 0.95rem; line-height: 1.6; }
+
+@media (max-width: 700px) {
+    header { padding: 14px 16px; }
+    .container { padding: 14px 10px; }
+    .dot { width: 24px; height: 24px; font-size: 0.8rem; border-radius: 5px; }
+    td.td-date { padding-left: 12px; }
+    th.th-left { padding-left: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>Matrius · Аналитика встреч</h1>
+        <div class="subtitle">Оценка преподавателей по 8 этапам вводного урока</div>
+    </div>
+    <div class="updated" id="last-updated"></div>
+</header>
+
+<div class="container">
+    <div class="tabs" id="tabs"></div>
+    <div id="stats" class="stats"></div>
+    <div id="content"></div>
+</div>
+
+<script>
+const STAGE_NAMES = {
+    "1": "Представление",
+    "2": "Знакомство",
+    "3": "О Matrius",
+    "4": "План урока",
+    "5": "Цели ребёнка",
+    "6": "Диагностика",
+    "7": "Прощание",
+    "8": "Продажа"
+};
+const STAGE_SHORT = {
+    "1": "Предст.",
+    "2": "Знаком.",
+    "3": "Matrius",
+    "4": "План",
+    "5": "Цели",
+    "6": "Диагн.",
+    "7": "Прощ.",
+    "8": "Продажа"
+};
+
+function scoreVal(s) {
+    if (s === "✅") return 2;
+    if (s === "⚠️") return 1;
+    if (s === "❌") return 0;
+    return null;
+}
+function dotClass(s) {
+    if (s === "✅") return "dot-ok";
+    if (s === "⚠️") return "dot-warn";
+    if (s === "❌") return "dot-fail";
+    return "dot-none";
+}
+function totalPct(stages) {
+    let sum = 0, cnt = 0;
+    for (let i = 1; i <= 8; i++) {
+        const v = scoreVal((stages || {})[i]);
+        if (v !== null) { sum += v; cnt++; }
+    }
+    return cnt ? Math.round(sum / (cnt * 2) * 100) : null;
+}
+function pctColor(p) {
+    if (p >= 75) return "#22c55e";
+    if (p >= 50) return "#f59e0b";
+    return "#ef4444";
+}
+function avgByStage(lessons) {
+    const sums = {}, cnts = {};
+    for (const l of lessons) {
+        for (let i = 1; i <= 8; i++) {
+            const k = String(i);
+            const v = scoreVal((l.stages || {})[k]);
+            if (v !== null) {
+                sums[k] = (sums[k] || 0) + v;
+                cnts[k] = (cnts[k] || 0) + 1;
+            }
+        }
+    }
+    const out = {};
+    for (const k of Object.keys(sums)) out[k] = sums[k] / cnts[k];
+    return out;
+}
+function bottleneckStage(lessons) {
+    const avgs = avgByStage(lessons);
+    let minK = null, minV = Infinity;
+    for (const [k, v] of Object.entries(avgs)) {
+        if (v < minV) { minV = v; minK = k; }
+    }
+    return minK;
+}
+function fmtDate(d) {
+    if (!d) return "—";
+    const [y, m, day] = d.split("-");
+    return `${day}.${m}.${y}`;
+}
+function sortDesc(lessons) {
+    return [...lessons].sort((a, b) => {
+        const da = (a.date || "") + (a.time || "");
+        const db = (b.date || "") + (b.time || "");
+        return db.localeCompare(da);
+    });
+}
+function splitBaselineNew(lessons) {
+    // Chronological order: first 10 = baseline, rest = new
+    const asc = [...lessons].sort((a, b) => {
+        const da = (a.date || "") + (a.time || "");
+        const db = (b.date || "") + (b.time || "");
+        return da.localeCompare(db);
+    });
+    const baseline = asc.slice(0, Math.min(10, asc.length));
+    const newOnes = asc.slice(10);
+    return { baseline, newOnes };
+}
+
+let allLessons = [];
+let currentTeacher = "Все";
+
+async function loadData() {
+    try {
+        const r = await fetch("data.json?t=" + Date.now());
+        const d = await r.json();
+        return d.lessons || [];
+    } catch (e) {
+        console.error(e);
+        return [];
+    }
+}
+
+function renderTabs(lessons) {
+    const teachers = ["Все", ...Array.from(new Set(lessons.map(l => l.teacher))).sort()];
+    document.getElementById("tabs").innerHTML = teachers.map(t =>
+        `<button class="tab ${t === currentTeacher ? "active" : ""}" onclick="select('${t}')">${t}</button>`
+    ).join("");
+}
+
+function select(t) {
+    currentTeacher = t;
+    renderAll();
+}
+
+function filtered() {
+    if (currentTeacher === "Все") return allLessons;
+    return allLessons.filter(l => l.teacher === currentTeacher);
+}
+
+function renderStats(lessons) {
+    const el = document.getElementById("stats");
+    if (!lessons.length) { el.innerHTML = ""; return; }
+
+    const { baseline, newOnes } = splitBaselineNew(lessons);
+    const btn = bottleneckStage(baseline);
+    const btnName = btn ? STAGE_NAMES[btn] : "—";
+
+    const baseAvgs = avgByStage(baseline);
+    const overallAvg = Object.values(baseAvgs).length
+        ? Math.round(Object.values(baseAvgs).reduce((a, b) => a + b, 0) / Object.values(baseAvgs).length / 2 * 100)
+        : 0;
+
+    let trendHtml = "";
+    if (newOnes.length > 0 && btn) {
+        const newAvgs = avgByStage(newOnes);
+        const diff = (newAvgs[btn] ?? 0) - (baseAvgs[btn] ?? 0);
+        if (diff > 0.25)       trendHtml = `<span class="trend-up"> ↑ улучшение</span>`;
+        else if (diff < -0.25) trendHtml = `<span class="trend-down"> ↓ просадка</span>`;
+        else                   trendHtml = `<span class="trend-same"> → без изменений</span>`;
+    }
+
+    el.innerHTML = `
+        <div class="stat-card">
+            <div class="label">Всего встреч</div>
+            <div class="value">${lessons.length}</div>
+            <div class="sub">${newOnes.length > 0 ? `${newOnes.length} новых поверх базы` : "все в базе (≤10)"}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Средний балл — база</div>
+            <div class="value" style="color:${pctColor(overallAvg)}">${overallAvg}%</div>
+            <div class="sub">по первым ${baseline.length} встречам</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Узкое место (база)</div>
+            <div class="value bottleneck-value">${btn ? `Этап ${btn}` : "—"}</div>
+            <div class="sub">${btnName}${trendHtml}</div>
+        </div>
+    `;
+}
+
+function lessonRow(l, isNew, btn, showTeacher) {
+    const pct = totalPct(l.stages || {});
+    const cells = [1,2,3,4,5,6,7,8].map(i => {
+        const k = String(i);
+        const s = (l.stages || {})[k];
+        const isBn = k === btn;
+        return `<td class="${isBn ? "td-bottleneck" : ""}">
+            <span class="dot ${dotClass(s)}">${s || "·"}</span>
+        </td>`;
+    }).join("");
+    const scoreHtml = pct !== null
+        ? `<td class="td-score" style="color:${pctColor(pct)}">${pct}%</td>`
+        : `<td class="td-score" style="color:#cbd5e1">—</td>`;
+    const teacherTd = showTeacher ? `<td class="td-teacher">${l.teacher || ""}</td>` : "";
+    return `<tr class="${isNew ? "tr-new" : ""}">
+        <td class="td-date">${fmtDate(l.date)}${l.time ? " " + l.time : ""}</td>
+        ${teacherTd}
+        ${cells}
+        ${scoreHtml}
+    </tr>`;
+}
+
+function renderTable(lessons) {
+    if (!lessons.length) {
+        return `<div class="empty"><div class="icon">📊</div>
+            <p>Нет данных.<br>Отправь транскрипцию в бот через /analiz.</p></div>`;
+    }
+
+    const { baseline, newOnes } = splitBaselineNew(lessons);
+    const btn = bottleneckStage(baseline.length ? baseline : lessons);
+    const showTeacher = currentTeacher === "Все";
+
+    const stageHeaders = [1,2,3,4,5,6,7,8].map(i =>
+        `<th class="${String(i) === btn ? "th-bottleneck" : ""}">${STAGE_SHORT[String(i)]}</th>`
+    ).join("");
+    const teacherHeader = showTeacher ? "<th>Препод.</th>" : "";
+
+    const baseDesc = sortDesc(baseline);
+    const newDesc = sortDesc(newOnes);
+
+    let rows = "";
+    if (newOnes.length > 0) {
+        rows += `<tr class="tr-sep"><td colspan="100">🆕 Новые встречи — ${newOnes.length} шт.</td></tr>`;
+        rows += newDesc.map(l => lessonRow(l, true, btn, showTeacher)).join("");
+        rows += `<tr class="tr-sep"><td colspan="100">📋 База — первые ${baseline.length} встреч</td></tr>`;
+    }
+    rows += baseDesc.map(l => lessonRow(l, false, btn, showTeacher)).join("");
+
+    const btnBadge = btn
+        ? `<span class="badge badge-bottleneck">Узкое место: Этап ${btn} — ${STAGE_NAMES[btn]}</span>`
+        : "";
+
+    return `<div class="card">
+        <div class="card-header">
+            Встречи по этапам
+            ${btnBadge}
+            ${newOnes.length > 0 ? `<span class="badge badge-new">${newOnes.length} новых</span>` : ""}
+        </div>
+        <div class="scroll-wrap">
+            <table>
+                <thead><tr>
+                    <th class="th-left">Дата</th>
+                    ${teacherHeader}
+                    ${stageHeaders}
+                    <th>Балл</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function renderBars(lessons) {
+    if (lessons.length < 3) return "";
+    const { baseline } = splitBaselineNew(lessons);
+    const avgs = avgByStage(baseline.length ? baseline : lessons);
+    const bars = [1,2,3,4,5,6,7,8].map(i => {
+        const k = String(i);
+        const v = avgs[k] ?? 0;
+        const pct = Math.round(v / 2 * 100);
+        const h = Math.max(4, Math.round(v / 2 * 52));
+        const cls = pct >= 75 ? "bar-ok" : pct >= 50 ? "bar-warn" : "bar-low";
+        return `<div class="bar-wrap">
+            <div class="bar ${cls}" style="height:${h}px" title="${STAGE_NAMES[k]}: ${pct}%"></div>
+            <div class="bar-label">${i}</div>
+        </div>`;
+    }).join("");
+    return `<div class="card" style="margin-bottom:20px">
+        <div class="card-header">Средний балл по этапам (база)</div>
+        <div class="bars">${bars}</div>
+        <div style="padding:0 20px 12px;font-size:0.73rem;color:#94a3b8">
+            ${[1,2,3,4,5,6,7,8].map(i => `${i} — ${STAGE_NAMES[String(i)]}`).join(" &nbsp;·&nbsp; ")}
+        </div>
+    </div>`;
+}
+
+function renderComparison(lessons) {
+    const { baseline, newOnes } = splitBaselineNew(lessons);
+    if (!newOnes.length || !baseline.length) return "";
+
+    const baseAvgs = avgByStage(baseline);
+    const newAvgs = avgByStage(newOnes);
+
+    function fmt(v) { return v !== undefined ? Math.round(v / 2 * 100) + "%" : "—"; }
+    function trendIcon(bv, nv) {
+        if (nv === undefined || bv === undefined) return `<span class="trend-na">—</span>`;
+        const d = nv - bv;
+        if (d > 0.25) return `<span class="trend-up">↑</span>`;
+        if (d < -0.25) return `<span class="trend-down">↓</span>`;
+        return `<span class="trend-same">→</span>`;
+    }
+
+    const btn = bottleneckStage(baseline);
+    const heads = [1,2,3,4,5,6,7,8].map(i =>
+        `<th class="${String(i) === btn ? "th-bottleneck" : ""}">${STAGE_SHORT[String(i)]}</th>`
+    ).join("");
+    const baseRow = [1,2,3,4,5,6,7,8].map(i =>
+        `<td class="avg-val ${String(i) === btn ? "td-bottleneck" : ""}">${fmt(baseAvgs[String(i)])}</td>`
+    ).join("");
+    const newRow = [1,2,3,4,5,6,7,8].map(i =>
+        `<td class="avg-val ${String(i) === btn ? "td-bottleneck" : ""}">${fmt(newAvgs[String(i)])}</td>`
+    ).join("");
+    const trendRow = [1,2,3,4,5,6,7,8].map(i =>
+        `<td class="${String(i) === btn ? "td-bottleneck" : ""}">${trendIcon(baseAvgs[String(i)], newAvgs[String(i)])}</td>`
+    ).join("");
+
+    return `<div class="card">
+        <div class="card-header">
+            Сравнение: новые встречи vs база
+            <span style="font-size:0.78rem;color:#94a3b8;font-weight:400">${newOnes.length} новых / ${baseline.length} в базе</span>
+        </div>
+        <div class="scroll-wrap">
+            <table>
+                <thead><tr>
+                    <th class="th-left" style="min-width:130px"></th>${heads}
+                </tr></thead>
+                <tbody>
+                    <tr><td class="cmp-row-label">База (среднее)</td>${baseRow}</tr>
+                    <tr><td class="cmp-row-label">Новые (среднее)</td>${newRow}</tr>
+                    <tr><td class="cmp-row-label">Динамика</td>${trendRow}</tr>
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function renderAll() {
+    const data = filtered();
+    renderStats(data);
+    document.getElementById("content").innerHTML =
+        renderBars(data) +
+        renderTable(data) +
+        renderComparison(data);
+}
+
+async function init() {
+    allLessons = await loadData();
+    if (allLessons.length) {
+        const latest = allLessons.reduce((a, b) => a.date > b.date ? a : b);
+        document.getElementById("last-updated").textContent = "Обновлено: " + fmtDate(latest.date);
+    }
+    renderTabs(allLessons);
+    renderAll();
+}
+
+init();
+</script>
+</body>
+</html>
