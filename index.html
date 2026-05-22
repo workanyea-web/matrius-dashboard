@@ -68,13 +68,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.
 @keyframes glow-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.15);}50%{box-shadow:0 0 10px 2px rgba(239,68,68,0.15);}}
 .badge-new{background:var(--purple-dim);color:#A78BFA;border:1px solid rgba(124,58,237,0.2);}
 
-/* GROWTH POINTS PANEL */
+/* GROWTH PANEL */
 .growth-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:20px;overflow:hidden;}
 .growth-panel__head{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .growth-panel__title{font-family:var(--fh);font-weight:700;font-size:0.9rem;color:var(--text);}
 .growth-panel__meta{font-size:0.75rem;color:var(--muted2);}
 .growth-panel__body{padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.growth-col{}
 .growth-col__title{font-family:var(--fh);font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin-bottom:12px;}
 .task-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
 .task-num{font-family:var(--fm);font-size:0.72rem;color:var(--orange);font-weight:600;flex-shrink:0;margin-top:2px;}
@@ -110,7 +109,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.
 .obj-table td{text-align:left;padding:10px 12px;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.04);}
 .obj-idx{font-family:var(--fm);font-size:0.7rem;color:var(--muted2);text-align:center!important;width:30px;padding:10px 6px!important;}
 .obj-count{font-family:var(--fh);font-weight:700;color:var(--orange);text-align:center!important;width:50px;}
-.obj-teacher{font-family:var(--fm);font-size:0.72rem;color:var(--muted2);}
+.obj-teacher-cell{font-family:var(--fm);font-size:0.72rem;color:var(--muted2);}
 .obj-handling{color:var(--muted);font-size:0.8rem;}
 .obj-badge{display:inline-block;background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.2);color:var(--orange2);border-radius:100px;padding:2px 10px;font-size:0.68rem;font-family:var(--fh);font-weight:700;margin-left:6px;}
 
@@ -141,7 +140,7 @@ td.td-sale{background:rgba(124,58,237,0.03);}
 tr.tr-new{background:rgba(124,58,237,0.03);}
 tr.tr-sep td{padding:8px 24px;background:rgba(255,255,255,0.02);font-family:var(--fm);font-size:0.7rem;color:var(--muted2);font-weight:600;text-align:left;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
 
-/* EXPANDABLE LESSON DETAIL ROW */
+/* LESSON DETAIL ROW */
 tr.tr-detail td{padding:0;}
 .lesson-detail{padding:16px 24px;background:var(--bg2);border-bottom:1px solid var(--border);}
 .detail-summary{font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
@@ -322,28 +321,21 @@ function renderStats(lessons){
   });
 }
 
-/* ── GROWTH POINTS (teacher panel) ── */
+/* ── GROWTH PANEL ── */
 function renderGrowthPanel(lessons){
   if(!lessons.length||currentTeacher==="Все")return"";
   const recent=sortDesc(lessons).slice(0,5);
   const avgs=avgByStage(lessons);
-
-  // collect tasks from recent lessons
   const allTasks=[];
   for(const l of recent){
     if(l.tasks&&l.tasks.length){
-      for(const t of l.tasks){
-        allTasks.push({text:t,date:l.date});
-      }
+      for(const t of l.tasks)allTasks.push({text:t,date:l.date});
     }
   }
-
-  // weak stages sorted
   const weakStages=STAGES
     .filter(k=>avgs[k]!==undefined)
     .sort((a,b)=>(avgs[a]??2)-(avgs[b]??2))
     .slice(0,6);
-
   const tasksHtml=allTasks.length
     ?allTasks.slice(0,6).map((t,i)=>`
       <div class="task-item">
@@ -351,7 +343,6 @@ function renderGrowthPanel(lessons){
         <span class="task-text">${esc(t.text)}</span>
       </div>`).join("")
     :`<div class="no-data-msg">Задачи появятся после анализа с разделом "Саммари + задачи"</div>`;
-
   const stagesHtml=weakStages.map(k=>{
     const pct=Math.round((avgs[k]??0)/2*100);
     const cls=barClass(pct);
@@ -361,7 +352,6 @@ function renderGrowthPanel(lessons){
       <span class="stage-pct">${pct}%</span>
     </div>`;
   }).join("");
-
   return`<div class="growth-panel reveal">
     <div class="growth-panel__head">
       <span class="growth-panel__title">Точки роста — ${currentTeacher}</span>
@@ -380,7 +370,7 @@ function renderGrowthPanel(lessons){
   </div>`;
 }
 
-/* ── TEAM PANEL (all teachers) ── */
+/* ── TEAM PANEL ── */
 function renderTeamPanel(lessons){
   if(currentTeacher!=="Все"||!lessons.length)return"";
   const teachers=[...new Set(lessons.map(l=>l.teacher))].sort();
@@ -406,7 +396,6 @@ function renderTeamPanel(lessons){
       <div class="team-teacher-dots" title="Этапы 5, 8.1–8.2, 8.5, 8.7">${dots}</div>
     </div>`;
   }).join("");
-
   return`<div class="team-panel reveal">
     <div class="card-header">Обзор команды <span style="font-size:.75rem;color:var(--muted2);font-weight:400">ключевые этапы: 5, 8.1, 8.2, 8.5, 8.7</span></div>
     ${rows}
@@ -438,6 +427,57 @@ function renderRisksPanel(lessons){
   return`<div class="card reveal">
     <div class="card-header">Риски сделок <span style="font-size:.75rem;color:var(--muted2);font-weight:400">из последних ${recent.length} уроков</span></div>
     <div class="risks-list">${itemsHtml}</div>
+  </div>`;
+}
+
+/* ── OBJECTIONS PANEL ── */
+function renderObjectionsPanel(lessons){
+  if(!lessons.length)return"";
+  const allObjs=[];
+  for(const l of sortDesc(lessons)){
+    if(l.objections&&l.objections.length){
+      for(const o of l.objections){
+        allObjs.push({text:o.text||"",handling:o.handling||"",teacher:l.teacher,date:l.date});
+      }
+    }
+  }
+  if(!allObjs.length)return"";
+  const groups={};
+  for(const o of allObjs){
+    const key=(o.text||"").toLowerCase().trim().slice(0,50);
+    if(!groups[key]){groups[key]={text:o.text,handlings:[],count:0,teachers:new Set()};}
+    groups[key].count++;
+    groups[key].teachers.add(o.teacher);
+    if(o.handling&&!groups[key].handlings.includes(o.handling))groups[key].handlings.push(o.handling);
+  }
+  const sorted=Object.values(groups).sort((a,b)=>b.count-a.count);
+  const rows=sorted.map((g,i)=>`
+    <tr>
+      <td class="obj-idx">${i+1}</td>
+      <td>${esc(g.text)}</td>
+      <td class="obj-handling">${g.handlings.length?esc(g.handlings[0]):"—"}</td>
+      <td class="obj-count">${g.count}</td>
+      <td class="obj-teacher-cell">${[...g.teachers].map(esc).join(", ")}</td>
+    </tr>`).join("");
+  const lessonsWithObjs=lessons.filter(l=>l.objections&&l.objections.length).length;
+  return`<div class="card reveal">
+    <div class="card-header">
+      Возражения клиентов
+      <span class="obj-badge">${allObjs.length} записей</span>
+      <span style="font-size:.75rem;color:var(--muted2);font-weight:400;margin-left:4px">из ${lessonsWithObjs} уроков</span>
+    </div>
+    <div class="scroll-wrap"><table class="obj-table">
+      <thead>
+        <tr>
+          <th style="width:30px">#</th>
+          <th class="th-left" style="min-width:200px">Возражение</th>
+          <th class="th-left" style="min-width:180px">Как обработано</th>
+          <th style="width:50px">Раз</th>
+          <th style="width:110px">Препод.</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table></div>
   </div>`;
 }
 
@@ -623,57 +663,6 @@ function renderComparison(lessons){
         <tr><td class="cmp-row-label">Новые (среднее)</td>${mkRow(newAvgs)}</tr>
         <tr><td class="cmp-row-label">Динамика</td>${trendRow}</tr>
       </tbody>
-    </table></div>
-  </div>`;
-}
-
-/* ── OBJECTIONS PANEL ── */
-function renderObjectionsPanel(lessons){
-  if(!lessons.length) return "";
-  const allObjs=[];
-  for(const l of sortDesc(lessons)){
-    if(l.objections&&l.objections.length){
-      for(const o of l.objections){
-        allObjs.push({text:o.text||"",handling:o.handling||"",teacher:l.teacher,date:l.date});
-      }
-    }
-  }
-  if(!allObjs.length) return "";
-  const groups={};
-  for(const o of allObjs){
-    const key=(o.text||"").toLowerCase().trim().slice(0,50);
-    if(!groups[key]){groups[key]={text:o.text,handlings:[],count:0,teachers:new Set()};}
-    groups[key].count++;
-    groups[key].teachers.add(o.teacher);
-    if(o.handling&&!groups[key].handlings.includes(o.handling))groups[key].handlings.push(o.handling);
-  }
-  const sorted=Object.values(groups).sort((a,b)=>b.count-a.count);
-  const rows=sorted.map((g,i)=>`
-    <tr>
-      <td class="obj-idx">${i+1}</td>
-      <td>${esc(g.text)}</td>
-      <td class="obj-handling">${g.handlings.length?esc(g.handlings[0]):"—"}</td>
-      <td class="obj-count">${g.count}</td>
-      <td class="obj-teacher">${[...g.teachers].map(esc).join(", ")}</td>
-    </tr>`).join("");
-  const lessonsWithObjs=lessons.filter(l=>l.objections&&l.objections.length).length;
-  return`<div class="card reveal">
-    <div class="card-header">
-      Возражения клиентов
-      <span class="obj-badge">${allObjs.length} записей</span>
-      <span style="font-size:.75rem;color:var(--muted2);font-weight:400;margin-left:6px">из ${lessonsWithObjs} уроков</span>
-    </div>
-    <div class="scroll-wrap"><table class="obj-table">
-      <thead>
-        <tr>
-          <th style="width:30px">#</th>
-          <th class="th-left" style="min-width:200px">Возражение</th>
-          <th class="th-left" style="min-width:180px">Как обработано</th>
-          <th style="width:50px">Раз</th>
-          <th style="width:110px">Препод.</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
     </table></div>
   </div>`;
 }
