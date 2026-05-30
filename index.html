@@ -63,6 +63,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.
 .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:20px;transition:border-color 0.2s;}
 .card:hover{border-color:rgba(124,58,237,0.2);}
 .card-header{padding:16px 24px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.85rem;font-family:var(--fh);color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.copy-btn{margin-left:auto;padding:5px 14px;border-radius:100px;border:1.5px solid var(--border-orange);background:transparent;color:var(--orange2);cursor:pointer;font-size:0.75rem;font-weight:700;font-family:var(--fh);transition:all 0.2s;white-space:nowrap;}
+.copy-btn:hover{background:var(--orange-dim);}
 .badge{padding:3px 12px;border-radius:100px;font-size:0.71rem;font-weight:700;font-family:var(--fh);white-space:nowrap;}
 .badge-bottleneck{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.2);animation:glow-red 2s ease-in-out infinite;}
 @keyframes glow-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.15);}50%{box-shadow:0 0 10px 2px rgba(239,68,68,0.15);}}
@@ -356,6 +358,7 @@ function renderGrowthPanel(lessons){
     <div class="growth-panel__head">
       <span class="growth-panel__title">Точки роста — ${currentTeacher}</span>
       <span class="growth-panel__meta">последние ${recent.length} уроков</span>
+      <button class="copy-btn" style="margin-left:auto" onclick="copyTeacherReport('${currentTeacher}',filtered(),event)">📋 Скопировать</button>
     </div>
     <div class="growth-panel__body">
       <div class="growth-col">
@@ -397,7 +400,9 @@ function renderTeamPanel(lessons){
     </div>`;
   }).join("");
   return`<div class="team-panel reveal">
-    <div class="card-header">Обзор команды <span style="font-size:.75rem;color:var(--muted2);font-weight:400">ключевые этапы: 5, 8.1, 8.2, 8.5, 8.7</span></div>
+    <div class="card-header">Обзор команды <span style="font-size:.75rem;color:var(--muted2);font-weight:400">ключевые этапы: 5, 8.1, 8.2, 8.5, 8.7</span>
+      <button class="copy-btn" onclick="copyTeamReport(allLessons,event)">📋 Скопировать отчёт</button>
+    </div>
     ${rows}
   </div>`;
 }
@@ -684,6 +689,51 @@ function renderAll(){
     entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add("in");});
   },{threshold:0.08});
   document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+}
+
+/* ── COPY REPORT ── */
+function copyTeamReport(lessons,e){
+  const today=new Date().toLocaleDateString("ru-RU");
+  const teachers=[...new Set(lessons.map(l=>l.teacher))].sort();
+  let text=`📊 Дашборд Matrius · ${today}\n\n👥 Обзор команды:\n`;
+  let sum=0,cnt=0;
+  for(const t of teachers){
+    const tL=lessons.filter(l=>l.teacher===t);
+    const avgs=avgByStage(tL);
+    const pct=Object.values(avgs).length?Math.round(Object.values(avgs).reduce((a,b)=>a+b,0)/Object.values(avgs).length/2*100):0;
+    const btn=bottleneckStage(tL);
+    const icon=pct>=75?"✅":pct>=50?"⚠️":"❌";
+    text+=`${icon} ${t} — ${pct}%`;
+    if(btn)text+=` | Узкое: Этап ${btn} — ${STAGE_NAMES[btn]}`;
+    text+="\n";sum+=pct;cnt++;
+  }
+  const avg=cnt?Math.round(sum/cnt):0;
+  text+=`\n📈 Всего встреч: ${lessons.length}\n🎯 Средний балл команды: ${avg}%`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=e.target;const orig=b.textContent;
+    b.textContent="✅ Скопировано!";b.style.color="var(--green)";
+    setTimeout(()=>{b.textContent=orig;b.style.color="";},2000);
+  });
+}
+function copyTeacherReport(teacher,lessons,e){
+  const today=new Date().toLocaleDateString("ru-RU");
+  const avgs=avgByStage(lessons);
+  const pct=Object.values(avgs).length?Math.round(Object.values(avgs).reduce((a,b)=>a+b,0)/Object.values(avgs).length/2*100):0;
+  const btn=bottleneckStage(lessons);
+  const recent=sortDesc(lessons).slice(0,5);
+  const tasks=[];
+  for(const l of recent)if(l.tasks&&l.tasks.length)tasks.push(...l.tasks.slice(0,2));
+  let text=`📊 Разбор — ${teacher} · ${today}\n\n`;
+  const icon=pct>=75?"✅":pct>=50?"⚠️":"❌";
+  text+=`${icon} Средний балл: ${pct}%\n`;
+  if(btn)text+=`⚠️ Узкое место: Этап ${btn} — ${STAGE_NAMES[btn]}\n`;
+  text+=`📋 Встреч в разборе: ${lessons.length}\n`;
+  if(tasks.length){text+=`\n🔧 Задачи из последних разборов:\n`;tasks.slice(0,5).forEach((t,i)=>{text+=`${i+1}. ${t}\n`;});}
+  navigator.clipboard.writeText(text).then(()=>{
+    const b=e.target;const orig=b.textContent;
+    b.textContent="✅ Скопировано!";b.style.color="var(--green)";
+    setTimeout(()=>{b.textContent=orig;b.style.color="";},2000);
+  });
 }
 
 async function init(){
